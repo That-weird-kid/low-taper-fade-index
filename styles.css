@@ -1,0 +1,56 @@
+body {
+    background-color: rgb(173, 227, 230);
+}
+
+
+
+h1 {
+    color: rgb(0, 0, 0);
+    text-align: center;
+    font-size: 18px;
+}
+
+
+  
+.grid-layout {
+    display: grid;
+    grid-template-areas:
+      "dash mew hockey"
+      "pong flow grass";
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    justify-items: center;
+  }
+  
+  .dash   { grid-area: dash; }
+  .mew    { grid-area: mew; }
+  .space-invader { grid-area: space-invader; }
+  .pong   { grid-area: pong; }
+  .flow   { grid-area: flow; }
+  .grass  { grid-area: grass; }
+
+
+#easteregg {  
+    width: 8px;
+cursor: default;
+    position: absolute;
+    top: 745px;
+    left: 10px;
+}
+
+#versatile {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .photo {
+    width: 150px;
+    border-radius: 10px;
+    /* Fix your border-color too! */
+    border: 2px solid rgb(130, 27, 27);
+  }
+  
