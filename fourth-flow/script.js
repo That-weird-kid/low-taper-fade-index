@@ -3,16 +3,8 @@
    // Global array to store platform data
    let platforms = [];
 
-
-
-
    // Maximum health value
    const MAX_HEALTH = 80;
-
-
-
-
-
 
    // Function to generate random platforms at the start of the match
    function generatePlatforms() {
@@ -36,15 +28,8 @@
        }
    }
 
- 
-
-
    // Array to store active power-ups
    let powerUps = [];
-
-
-
-
 
    const powerUpTypes = [
        { type: "health", healthRestore: 30, color: "green" },
@@ -80,9 +65,6 @@
        }, 10000);
    }
 
-
-
-
    class Player {
        constructor(id, startX, keys) {
            this.element = document.getElementById(id);
@@ -112,11 +94,9 @@
            if (!gameOver) this.x = Math.max(0, this.x - this.speed);
        }
 
-
        moveRight() {
            if (!gameOver) this.x = Math.min(750, this.x + this.speed);
        }
-
 
        jump() {
            if (!gameOver && this.grounded) {
@@ -124,13 +104,6 @@
                this.grounded = false;
            }
        }
-
-
-
-
-
-
-
 
        applyGravity() {
            if (!gameOver) {
@@ -156,13 +129,6 @@
                }
            }
        }
-
-
-
-
-
-
-
 
        takeDamage(amount, attacker) {
            if (this.shieldActive) return;
@@ -198,13 +164,6 @@
            }
        }
 
-
-
-
-
-
-
-
        lightAttack(opponent) {
            if (!gameOver && !this.attackCooldown) {
                this.attackCooldown = true;
@@ -217,13 +176,6 @@
                setTimeout(() => { this.attackCooldown = false; }, 500);
            }
        }
-
-
-
-
-
-
-
 
        heavyAttack(opponent) {
            if (!gameOver && !this.heavyAttackCooldown) {
@@ -238,13 +190,6 @@
            }
        }
 
-
-
-
-
-
-
-
        ultraFastAttack(opponent) {
            if (!gameOver && !this.fastAttackCooldown) {
                this.fastAttackCooldown = true;
@@ -258,25 +203,11 @@
            }
        }
 
-
-
-
-
-
-
-
        useUltimate(opponent) {
            if (this.ultimateCharge >= 100) {
                this.ultimateCharge = 0;
                this.ultimateBar.style.width = "0%";
                const gameContainer = document.getElementById("gameContainer");
-
-
-
-
-
-
-
 
                if (this.element.id === "player1") {
                    // New Ultimate for Player 1: Solar Flare
@@ -310,26 +241,12 @@
            }
        }
 
-
-
-
-
-
-
-
        animateAttack(scale = 1.2) {
            this.element.style.transform = `scale(${scale})`;
            setTimeout(() => {
                this.element.style.transform = "scale(1)";
            }, 200);
        }
-
-
-
-
-
-
-
 
        collidesWith(opponent, extraRange = 0) {
            let rect1 = this.element.getBoundingClientRect();
@@ -340,13 +257,6 @@
                   rect1.top < rect2.bottom;
        }
 
-
-
-
-
-
-
-
        updatePosition() {
            this.element.style.left = this.x + "px";
            this.element.style.bottom = this.y + "px";
@@ -355,25 +265,11 @@
        }
    }
 
-
-
-
-
-
-
-
    function declareWinner(winnerPlayer) {
        gameOver = true;
        let winnerName = winnerPlayer.element.id === "player1" ? "Joueur 1 (Rouge)" : "Joueur 2 (Bleu)";
        document.getElementById("winnerMessage").innerText = winnerName + " a gagné avec " + winnerPlayer.lives + " vies restantes!";
    }
-
-
-
-
-
-
-
 
    function checkPowerUpCollection(player) {
        let playerRect = player.element.getBoundingClientRect();
@@ -412,22 +308,8 @@
        });
    }
 
-
-
-
-
-
-
-
    let player1 = new Player("player1", 100, { left: "a", right: "d", jump: "w", light: "f", heavy: "q", ultraFast: "e" });
    let player2 = new Player("player2", 500, { left: "ArrowLeft", right: "ArrowRight", jump: "ArrowUp", light: "Shift", heavy: "Enter", ultraFast: "/" });
-
-
-
-
-
-
-
 
    document.addEventListener("keydown", (event) => {
        keys[event.key] = true;
@@ -435,12 +317,6 @@
    document.addEventListener("keyup", (event) => {
        keys[event.key] = false;
    });
-
-
-
-
-
-
 
 
    function increaseUltimateBars() {
@@ -454,13 +330,6 @@
    }
    increaseUltimateBars();
 
-
-
-
-
-
-
-
    function gameLoop() {
        if (!gameOver) {
            if (keys[player1.keys.left]) player1.moveLeft();
@@ -470,7 +339,6 @@
            if (keys[player1.keys.heavy]) player1.heavyAttack(player2);
            if (keys[player1.keys.ultraFast]) player1.ultraFastAttack(player2);
            if (keys[player1.keys.heavy] && keys[player1.keys.light]) player1.useUltimate(player2);
-        
            if (keys[player2.keys.left]) player2.moveLeft();
            if (keys[player2.keys.right]) player2.moveRight();
            if (keys[player2.keys.jump]) player2.jump();
