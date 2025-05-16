@@ -53,4 +53,9 @@ cursor: default;
     /* Fix your border-color too! */
     border: 2px solid rgb(130, 27, 27);
   }
-  
+  #fr_do {
+     position: absolute;
+    top: 745px;
+    left: 100px;
+    
+  }
