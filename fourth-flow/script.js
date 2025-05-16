@@ -488,4 +488,9 @@
            requestAnimationFrame(gameLoop);
        }
    }
-
+   function run(){
+      gameLoop();
+  generatePlatforms();
+setInterval(spawnPowerUp, 10000);
+   }
+run()
