@@ -356,9 +356,28 @@
            requestAnimationFrame(gameLoop);
        }
    }
-   function run(){
+   function startGame(){
       gameLoop();
   generatePlatforms();
 setInterval(spawnPowerUp, 10000);
    }
-run()
+window.addEventListener("DOMContentLoaded", () => {
+  const countdownEl = document.getElementById("countdown");
+  let count = 3;
+
+  const countdownInterval = setInterval(() => {
+    if (count > 1) {
+      count--;
+      countdownEl.innerText = count;
+    } else {
+      clearInterval(countdownInterval);
+      countdownEl.innerText = "FIGHT!";
+      setTimeout(() => {
+        countdownEl.remove(); // or fade out
+        startGame(); // your game starts here
+      }, 1000);
+    }
+  }, 1000);
+});
+
+startGame()
