@@ -36,7 +36,7 @@
        }
    }
 
-   generatePlatforms();
+ 
 
 
    // Array to store active power-ups
@@ -83,11 +83,6 @@
 
 
 
-   setInterval(spawnPowerUp, 10000);
-
-
-
-
    class Player {
        constructor(id, startX, keys) {
            this.element = document.getElementById(id);
@@ -112,13 +107,6 @@
            this.lastDamageTime = 0;
            this.shieldActive = false;
        }
-
-
-
-
-
-
-
 
        moveLeft() {
            if (!gameOver) this.x = Math.max(0, this.x - this.speed);
@@ -500,4 +488,4 @@
            requestAnimationFrame(gameLoop);
        }
    }
-   gameLoop();
+
