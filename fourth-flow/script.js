@@ -36,27 +36,11 @@
        }
    }
 
-
-
-
-
-
-
-
    generatePlatforms();
-
-
-
-
-
-
 
 
    // Array to store active power-ups
    let powerUps = [];
-
-
-
 
 
 
@@ -67,14 +51,6 @@
        { type: "speed", speedBoost: 3, color: "blue" },
        { type: "shield", shieldDuration: 3000, color: "yellow" }
    ];
-
-
-
-
-
-
-
-
    function spawnPowerUp() {
        const gameContainer = document.getElementById("gameContainer");
        const containerWidth = gameContainer.offsetWidth;
