@@ -328,8 +328,7 @@
            setTimeout(increaseUltimateBars, 100);
        }
    }
-   increaseUltimateBars();
-
+  
    function gameLoop() {
        if (!gameOver) {
            if (keys[player1.keys.left]) player1.moveLeft();
@@ -360,6 +359,9 @@
       gameLoop();
   generatePlatforms();
 setInterval(spawnPowerUp, 10000);
+      generatePlatforms()
+      spawnPowerUp()
+increaseUltimateBars()
    }
 window.addEventListener("DOMContentLoaded", () => {
   const countdownEl = document.getElementById("countdown");
@@ -379,5 +381,3 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }, 1000);
 });
-
-startGame()
