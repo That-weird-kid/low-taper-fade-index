@@ -359,7 +359,6 @@
       gameLoop();
   generatePlatforms();
 setInterval(spawnPowerUp, 10000);
-      generatePlatforms()
       spawnPowerUp()
 increaseUltimateBars()
    }
