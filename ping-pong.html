@@ -1,1 +1,366 @@
-ping-pong
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>Advanced Space Invaders</title>
+ <style>
+ body {
+ margin: 0;
+ background: black;
+ overflow: hidden;
+ color: white;
+ font-family: Arial, sans-serif;
+ }
+ canvas {
+ display: block;
+ margin: 0 auto;
+ background: #111;
+ border: 2px solid white;
+ }
+ </style>
+</head>
+<body>
+ <canvas id="gameCanvas" width="800" height="600"></canvas>
+ <script>
+ const canvas = document.getElementById('gameCanvas');
+ const ctx = canvas.getContext('2d');
+
+ const shootSound = new Audio('shoot.wav');
+ const explosionSound = new Audio('explosion.wav');
+ const powerupSound = new Audio('powerup.wav');
+
+ const player = {
+ x: canvas.width / 2 - 25,
+ y: canvas.height - 60,
+ width: 50,
+ height: 20,
+ color: 'lime',
+ speed: 8,
+ bullets: [],
+ lives: 3,
+ shieldActive: false,
+ multishotActive: false,
+ shieldTimer: 0,
+ multishotTimer: 0,
+ bulletCooldown: 0
+ };
+
+ let enemies = [];
+ let enemyRows = 3;
+ let enemyCols = 8;
+ let level = 1;
+ let score = 0;
+ let gameOver = false;
+ let youWin = false;
+ let keys = {};
+ let showLevelMessage = true;
+ let levelMessageTimer = 120;
+ let powerUps = [];
+
+ function randomRange(min, max) {
+ return Math.random() * (max - min) + min;
+ }
+
+ class Enemy {
+ constructor(x, y, level, isBoss = false) {
+ this.x = x;
+ this.y = y;
+ this.width = isBoss ? 100 : 40;
+ this.height = isBoss ? 50 : 20;
+ this.color = isBoss ? 'purple' : 'red';
+ this.speedX = isBoss ? 1 : 0.5 + level * 0.3;
+ this.speedY = 10;
+ this.direction = 1;
+ this.bullets = [];
+ this.minShootCooldown = Math.max(30, 180 - level * 15);
+ this.maxShootCooldown = Math.max(60, 240 - level * 15);
+ this.shootCooldown = randomRange(this.minShootCooldown, this.maxShootCooldown);
+ this.hp = isBoss ? 30 : 1;
+ this.isBoss = isBoss;
+ }
+
+ move() {
+ this.x += this.speedX * this.direction;
+ if (this.x <= 0 || this.x + this.width >= canvas.width) {
+ this.direction *= -1;
+ this.y += this.speedY;
+ }
+ }
+
+ shoot() {
+ if (this.shootCooldown <= 0) {
+ this.bullets.push({
+ x: this.x + this.width / 2,
+ y: this.y + this.height,
+ width: 5,
+ height: 10,
+ speed: 5 + level * 0.5,
+ color: 'yellow'
+ });
+ this.shootCooldown = randomRange(this.minShootCooldown, this.maxShootCooldown);
+ } else {
+ this.shootCooldown--;
+ }
+ }
+ }
+
+ function resetPlayer() {
+ player.x = canvas.width / 2 - 25;
+ player.y = canvas.height - 60;
+ player.bullets = [];
+ player.shieldActive = false;
+ player.multishotActive = false;
+ player.shieldTimer = 0;
+ player.multishotTimer = 0;
+ player.bulletCooldown = 0;
+ }
+
+ function resetGame() {
+ level = 1;
+ score = 0;
+ enemyRows = 3;
+ enemyCols = 8;
+ player.lives = 3;
+ resetPlayer();
+ enemies = [];
+ powerUps = [];
+ showLevelMessage = true;
+ levelMessageTimer = 120;
+ gameOver = false;
+ youWin = false;
+ }
+
+ function advanceLevel() {
+ if (level >= 5) {
+ spawnBoss();
+ return;
+ }
+ level++;
+ enemyRows = 3 + level;
+ enemyCols = Math.min(6 + level, 12);
+ resetPlayer();
+ showLevelMessage = true;
+ levelMessageTimer = 120;
+ powerUps = [];
+ }
+
+ function spawnEnemies() {
+ enemies = [];
+ for (let i = 0; i < enemyRows; i++) {
+ for (let j = 0; j < enemyCols; j++) {
+ enemies.push(new Enemy(60 + j * 60, 40 + i * 50, level));
+ }
+ }
+ }
+
+ function spawnBoss() {
+ enemies = [new Enemy(canvas.width / 2 - 50, 50, level, true)];
+ }
+
+ function spawnPowerUp(x, y) {
+ const types = ['shield', 'multishot'];
+ if (Math.random() < 0.1) {
+ const type = types[Math.floor(Math.random() * types.length)];
+ powerUps.push({ x, y, width: 20, height: 20, type, speed: 2, color: type === 'shield' ? 'blue' : 'cyan' });
+ }
+ }
+
+ document.addEventListener('keydown', e => {
+ keys[e.key] = true;
+ if (gameOver && e.key.toLowerCase() === 'r') {
+ resetGame();
+ }
+ });
+
+ document.addEventListener('keyup', e => keys[e.key] = false);
+
+ function checkCollisions() {
+ for (let i = player.bullets.length - 1; i >= 0; i--) {
+ const bullet = player.bullets[i];
+ for (let j = enemies.length - 1; j >= 0; j--) {
+ const enemy = enemies[j];
+ if (
+ bullet.x < enemy.x + enemy.width &&
+ bullet.x + bullet.width > enemy.x &&
+ bullet.y < enemy.y + enemy.height &&
+ bullet.y + bullet.height > enemy.y
+ ) {
+ enemy.hp--;
+ if (enemy.hp <= 0) {
+ enemies.splice(j, 1);
+ score += enemy.isBoss ? 200 : 10;
+ explosionSound.play();
+ if (!enemy.isBoss) spawnPowerUp(enemy.x + enemy.width / 2, enemy.y);
+ if (enemy.isBoss) {
+ youWin = true;
+ gameOver = true;
+ }
+ }
+ player.bullets.splice(i, 1);
+ break;
+ }
+ }
+ }
+
+ for (const enemy of enemies) {
+ for (let i = enemy.bullets.length - 1; i >= 0; i--) {
+ const bullet = enemy.bullets[i];
+ if (
+ bullet.x < player.x + player.width &&
+ bullet.x + bullet.width > player.x &&
+ bullet.y < player.y + player.height &&
+ bullet.y + bullet.height > player.y
+ ) {
+ if (player.shieldActive) {
+ player.shieldActive = false;
+ player.shieldTimer = 0;
+ } else {
+ player.lives--;
+ if (player.lives <= 0) gameOver = true;
+ }
+ enemy.bullets.splice(i, 1);
+ }
+ }
+ }
+
+ for (let i = powerUps.length - 1; i >= 0; i--) {
+ const p = powerUps[i];
+ if (
+ p.x < player.x + player.width &&
+ p.x + p.width > player.x &&
+ p.y < player.y + player.height &&
+ p.y + p.height > player.y
+ ) {
+ powerupSound.play();
+ if (p.type === 'shield') {
+ player.shieldActive = true;
+ player.shieldTimer = 600; // lasts 10 seconds
+ }
+ if (p.type === 'multishot') {
+ player.multishotActive = true;
+ player.multishotTimer = 600; // lasts 10 seconds
+ }
+ powerUps.splice(i, 1);
+ }
+ }
+ }
+
+ function cleanUpBullets() {
+ player.bullets = player.bullets.filter(b => b.y + b.height > 0);
+ for (const enemy of enemies) {
+ enemy.bullets = enemy.bullets.filter(b => b.y < canvas.height);
+ }
+ }
+
+ function update() {
+ if (showLevelMessage) {
+ levelMessageTimer--;
+ if (levelMessageTimer <= 0) {
+ showLevelMessage = false;
+ if (level === 5) spawnBoss();
+ else spawnEnemies();
+ }
+ return;
+ }
+
+ if (!gameOver) {
+ if (keys['ArrowLeft']) player.x -= player.speed;
+ if (keys['ArrowRight']) player.x += player.speed;
+
+ player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+
+ if (keys[' '] && player.bulletCooldown === 0) {
+ shootSound.play();
+ if (player.multishotActive) {
+ player.bullets.push({ x: player.x + player.width * 0.2, y: player.y, width: 5, height: 10, speed: 6, color: 'cyan' });
+ player.bullets.push({ x: player.x + player.width * 0.8, y: player.y, width: 5, height: 10, speed: 6, color: 'cyan' });
+ } else {
+ player.bullets.push({ x: player.x + player.width / 2, y: player.y, width: 5, height: 10, speed: 6, color: 'lime' });
+ }
+ player.bulletCooldown = 18;
+ }
+ if (player.bulletCooldown > 0) player.bulletCooldown--;
+
+ for (const b of player.bullets) b.y -= b.speed;
+ for (const enemy of enemies) {
+ enemy.move();
+ enemy.shoot();
+ for (const b of enemy.bullets) b.y += b.speed;
+ }
+
+ for (const p of powerUps) p.y += p.speed;
+
+ if (player.shieldActive && player.shieldTimer-- <= 0) player.shieldActive = false;
+ if (player.multishotActive && player.multishotTimer-- <= 0) player.multishotActive = false;
+
+ checkCollisions();
+ cleanUpBullets();
+
+ if (enemies.length === 0 && level < 5) advanceLevel();
+ }
+ }
+
+ function draw() {
+ ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+ if (gameOver) {
+ ctx.fillStyle = 'black';
+ ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+ ctx.fillStyle = 'white';
+ ctx.font = '48px sans-serif';
+ ctx.fillText(youWin ? 'YOU WIN!' : 'GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
+ ctx.font = '24px sans-serif';
+ ctx.fillText('Press R to Restart', canvas.width / 2 - 100, canvas.height / 2 + 50);
+ return;
+ }
+
+ if (showLevelMessage) {
+ ctx.fillStyle = 'white';
+ ctx.font = '48px sans-serif';
+ ctx.fillText(`LEVEL ${level}`, canvas.width / 2 - 100, canvas.height / 2);
+ return;
+ }
+
+ ctx.fillStyle = 'white';
+ ctx.font = '20px sans-serif';
+ ctx.fillText(`Score: ${score}`, 10, 30);
+ ctx.fillText(`Lives: ${player.lives}`, 700, 30);
+
+ if (player.shieldActive) ctx.fillText('Shield: ON', 10, 60);
+ if (player.multishotActive) ctx.fillText('Multishot: ON', 10, 90);
+
+ ctx.fillStyle = player.color;
+ ctx.fillRect(player.x, player.y, player.width, player.height);
+
+ for (const b of player.bullets) {
+ ctx.fillStyle = b.color;
+ ctx.fillRect(b.x, b.y, b.width, b.height);
+ }
+
+ for (const enemy of enemies) {
+ ctx.fillStyle = enemy.color;
+ ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+ for (const b of enemy.bullets) {
+ ctx.fillStyle = b.color;
+ ctx.fillRect(b.x, b.y, b.width, b.height);
+ }
+ }
+
+ for (const p of powerUps) {
+ ctx.fillStyle = p.color;
+ ctx.fillRect(p.x, p.y, p.width, p.height);
+ }
+ }
+
+ function gameLoop() {
+ update();
+ draw();
+ requestAnimationFrame(gameLoop);
+ }
+
+ spawnEnemies();
+ gameLoop();
+ </script>
+</body>
+</html>
