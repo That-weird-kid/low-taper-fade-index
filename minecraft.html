@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mini Minecraft</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #87ceeb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+
+  #health-container {
+    width: 300px;
+    margin: 10px;
+    text-align: center;
+  }
+
+
+  #health-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #ccc;
+    border: 2px solid #333;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+
+
+  #health-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(to right, red, darkred);
+    transition: width 0.3s;
+  }
+
+
+  #health-text {
+    font-weight: bold;
+  }
+
+
+  #toolbar {
+    margin: 10px;
+  }
+
+
+  .block-select {
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+  }
+
+
+  #game {
+    display: grid;
+    grid-template-columns: repeat(20, 30px);
+    grid-template-rows: repeat(15, 30px);
+    gap: 1px;
+    position: relative;
+  }
+
+
+  .cell {
+    width: 30px;
+    height: 30px;
+    background: #eee;
+    border: 1px solid #ccc;
+    position: relative;
+  }
+
+
+  .dirt { background: #8B4513; }
+  .grass { background: #228B22; }
+  .stone { background: #a9a9a9; }
+  .bedrock { background: #2f2f2f; }
+
+
+  .player {
+    background: blue;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+  }
+
+
+  .highlight {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border: 2px dashed rgba(0, 0, 255, 0.7);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+
+  .highlight.can-place {
+    border-color: rgba(0, 255, 0, 0.7);
+  }
+
+
+  .highlight.cannot-place {
+    border-color: rgba(255, 0, 0, 0.7);
+  }
+</style>
+</head>
+<body>
+<div id="health-container">
+  <div id="health-text">Health: 100</div>
+  <div id="health-bar">
+    <div id="health-fill"></div>
+  </div>
+</div>
+
+
+<div id="toolbar">
+  <button class="block-select" onclick="setBlockType('dirt')">🟫 Dirt</button>
+  <button class="block-select" onclick="setBlockType('grass')">🟩 Grass</button>
+  <button class="block-select" onclick="setBlockType('stone')">⬜ Stone</button>
+</div>
+
+
+<div id="game"></div>
+
+
+<script>
+  const COLS = 20;
+  const ROWS = 15;
+  const game = document.getElementById("game");
+  let currentBlock = 'dirt';
+  const cells = [];
+  let health = 100;
+
+
+  // Random terrain generation
+  function generateTerrain() {
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+
+
+        // Generate random blocks for terrain, but bedrock at the very bottom
+        if (y === ROWS - 1) {
+          cell.classList.add("bedrock"); // Bedrock layer at the bottom
+        } else if (y === ROWS - 2) {
+          cell.classList.add("grass"); // Grass layer above bedrock
+        } else {
+          const rand = Math.random();
+          if (rand < 0.2) {
+            cell.classList.add("stone");
+          } else if (rand < 0.5) {
+            cell.classList.add("dirt");
+          } else {
+            cell.classList.add("grass");
+          }
+        }
+
+
+        // Event listeners for block interactions
+        cell.addEventListener("click", () => {
+          if (!cell.querySelector(".player")) {
+            const distanceX = Math.abs(x - playerX);
+            const distanceY = Math.abs(y - playerY);
+            if (distanceX <= 3 && distanceY <= 3) {
+              cell.className = "cell " + currentBlock;
+            }
+          }
+        });
+
+
+        cell.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          if (!cell.querySelector(".player")) {
+            cell.className = "cell";
+          }
+        });
+
+
+        game.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+  }
+
+
+  function setBlockType(type) {
+    currentBlock = type;
+  }
+
+
+  let playerX = 0;
+  let playerY = 0;
+
+
+  function drawPlayer() {
+    document.querySelectorAll(".player").forEach(p => p.remove());
+    const index = playerY * COLS + playerX;
+    const playerDiv = document.createElement("div");
+    playerDiv.classList.add("player");
+    cells[index].appendChild(playerDiv);
+  }
+
+
+  function getCell(x, y) {
+    return cells[y * COLS + x];
+  }
+
+
+  function updateHealthBar() {
+    const fill = document.getElementById("health-fill");
+    const text = document.getElementById("health-text");
+    fill.style.width = `${health}%`;
+    text.textContent = `Health: ${health}`;
+    if (health <= 0) {
+      alert("You died!");
+      health = 100;
+      updateHealthBar();
+      playerX = 0;
+      playerY = 0;
+      drawPlayer();
+    }
+  }
+
+
+  function movePlayer(dx, dy) {
+    const newX = playerX + dx;
+    const newY = playerY + dy;
+
+
+    if (newX >= 0 && newX < COLS && newY >= 0 && newY < ROWS) {
+      const targetCell = getCell(newX, newY);
+      if (targetCell.classList.contains("grass") || targetCell.classList.contains("dirt")) {
+        playerX = newX;
+        playerY = newY;
+        drawPlayer();
+      } else if (targetCell.classList.contains("stone")) {
+        health -= 10;
+        updateHealthBar();
+        playerX = newX;
+        playerY = newY;
+        drawPlayer();
+      }
+    }
+  }
+
+
+  document.addEventListener("keydown", (e) => {
+    switch (e.key) {
+      case "ArrowUp":
+      case "w": movePlayer(0, -1); break;
+      case "ArrowDown":
+      case "s": movePlayer(0, 1); break;
+      case "ArrowLeft":
+      case "a": movePlayer(-1, 0); break;
+      case "ArrowRight":
+      case "d": movePlayer(1, 0); break;
+    }
+  });
+
+
+  function isBlocked(x, y) {
+    const cell = getCell(x, y);
+    return cell.classList.contains("bedrock");
+  }
+
+
+  function updateMouseIndicator(mouseX, mouseY) {
+    const existingHighlight = document.querySelector(".highlight");
+    if (existingHighlight) {
+      existingHighlight.remove();
+    }
+
+
+    const highlightDiv = document.createElement("div");
+    highlightDiv.classList.add("highlight");
+
+
+    const distanceX = Math.abs(mouseX - playerX);
+    const distanceY = Math.abs(mouseY - playerY);
+
+
+    if (distanceX <= 3 && distanceY <= 3 && !isBlocked(mouseX, mouseY)) {
+      highlightDiv.classList.add("can-place");
+    } else {
+      highlightDiv.classList.add("cannot-place");
+    }
+
+
+    highlightDiv.style.left = `${mouseX * 30}px`;
+    highlightDiv.style.top = `${mouseY * 30}px`;
+    game.appendChild(highlightDiv);
+  }
+
+
+  game.addEventListener("mousemove", (e) => {
+    const rect = game.getBoundingClientRect();
+    const mouseX = Math.floor((e.clientX - rect.left) / 30);
+    const mouseY = Math.floor((e.clientY - rect.top) / 30);
+    updateMouseIndicator(mouseX, mouseY);
+  });
+
+
+  // Initialize the terrain and health bar
+  generateTerrain();
+  drawPlayer();
+  updateHealthBar();
+</script>
+</body>
+</html>
