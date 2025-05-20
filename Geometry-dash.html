@@ -1,1 +1,331 @@
-Geometry dash
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>2D Top-Down Movement</title>
+   <style>
+       body { margin: 0; overflow: hidden; }
+       canvas { background: #222; display: block; }
+       #timer {
+           position: absolute;
+           top: 10px;
+           left: 10px;
+           color: white;
+           font-family: Arial, sans-serif;
+           font-size: 20px;
+       }
+   </style>
+</head>
+<body>
+   <canvas id="gameCanvas"></canvas>
+   <div id="timer">Time: 0.00</div>
+   <script>
+       const canvas = document.getElementById("gameCanvas");
+       const ctx = canvas.getContext("2d");
+       const timerElement = document.getElementById("timer");
+       canvas.width = 800;
+       canvas.height = 600;
+
+
+       const tileSize = 40;
+       const cols = Math.floor(canvas.width / tileSize);
+       const rows = Math.floor(canvas.height / tileSize);
+
+
+       let gameActive = true;
+       let startTime;
+       let powerUp = null;
+       let powerUpTimer = 0;
+
+
+       class Player {
+           constructor(x, y, color, controls) {
+               this.x = x;
+               this.y = y;
+               this.size = tileSize / 2;
+               this.color = color;
+               this.speed = 3;  // Normal speed
+               this.controls = controls;
+               this.keys = { up: false, down: false, left: false, right: false };
+               this.frozen = false;
+               this.speedBoostActive = false;
+           }
+
+
+           move() {
+               if (!gameActive || this.frozen) return;
+
+
+               let newX = this.x;
+               let newY = this.y;
+
+
+               if (this.keys.up) newY -= this.speed;
+               if (this.keys.down) newY += this.speed;
+               if (this.keys.left) newX -= this.speed;
+               if (this.keys.right) newX += this.speed;
+
+
+               if (this.canMove(newX, newY)) {
+                   this.x = newX;
+                   this.y = newY;
+               }
+
+
+               if (this.reachedGoal()) {
+                   endGame(this);
+               }
+
+
+               // Deactivate speed boost after 5 seconds
+               if (this.speedBoostActive && Date.now() - powerUpTimer > 5000) {
+                   this.speed = 6;  // Reset speed after boost duration
+                   this.speedBoostActive = false;
+               }
+           }
+
+
+           canMove(x, y) {
+               if (x < 0 || x + this.size > canvas.width || y < 0 || y + this.size > canvas.height) {
+                   return false;
+               }
+               return !walls.some(wall =>
+                   x < wall.x + wall.width &&
+                   x + this.size > wall.x &&
+                   y < wall.y + wall.height &&
+                   y + this.size > wall.y
+               );
+           }
+
+
+           reachedGoal() {
+               return (
+                   this.x < goal.x + goal.size &&
+                   this.x + this.size > goal.x &&
+                   this.y < goal.y + goal.size &&
+                   this.y + this.size > goal.y
+               );
+           }
+
+
+           draw() {
+               ctx.fillStyle = this.color;
+               ctx.fillRect(this.x, this.y, this.size, this.size);
+           }
+
+
+           activateSpeedBoost() {
+               this.speed = 15;  // Increased speed for power-up
+               this.speedBoostActive = true;
+               powerUpTimer = Date.now();  // Track power-up timer
+               powerUp = null; // Power-up disappears after being used
+           }
+
+
+           teleport() {
+               const newPos = findOpenSpace();
+               this.x = newPos.x;
+               this.y = newPos.y;
+               powerUp = null; // Power-up disappears after being used
+           }
+
+
+           freezeOpponent(opponent) {
+               opponent.frozen = true;
+               setTimeout(() => opponent.frozen = false, 2500); // Freeze for 2.5 seconds
+               powerUp = null; // Power-up disappears after being used
+           }
+       }
+
+
+       class Wall {
+           constructor(x, y) {
+               this.x = x * tileSize;
+               this.y = y * tileSize;
+               this.width = tileSize;
+               this.height = tileSize;
+           }
+
+
+           draw() {
+               ctx.fillStyle = "gray";
+               ctx.fillRect(this.x, this.y, this.width, this.height);
+           }
+       }
+
+
+       class Goal {
+           constructor(x, y) {
+               this.x = x;
+               this.y = y;
+               this.size = tileSize / 2;
+           }
+
+
+           draw() {
+               ctx.fillStyle = "yellow";
+               ctx.fillRect(this.x, this.y, this.size, this.size);
+           }
+       }
+
+
+       class PowerUp {
+           constructor(x, y, type) {
+               this.x = x;
+               this.y = y;
+               this.size = tileSize / 2;
+               this.type = type;
+           }
+
+
+           draw() {
+               ctx.beginPath();
+               ctx.arc(this.x + this.size / 2, this.y + this.size / 2, this.size / 2, 0, Math.PI * 2); // Draw circle
+               ctx.closePath();
+              
+               if (this.type === "speed") {
+                   ctx.fillStyle = "green";
+               } else if (this.type === "teleport") {
+                   ctx.fillStyle = "purple";
+               } else if (this.type === "freeze") {
+                   ctx.fillStyle = "cyan";
+               }
+
+
+               ctx.fill();
+           }
+
+
+           activate(player, opponent) {
+               if (this.type === "speed") {
+                   player.activateSpeedBoost();
+               } else if (this.type === "teleport") {
+                   player.teleport();
+               } else if (this.type === "freeze") {
+                   player.freezeOpponent(opponent);
+               }
+           }
+       }
+
+
+       function generateMaze() {
+           let grid = Array.from({ length: rows }, () => Array(cols).fill(1));
+
+
+           function carve(x, y) {
+               grid[y][x] = 0;
+               let directions = [
+                   [0, -1], [0, 1], [-1, 0], [1, 0]
+               ].sort(() => Math.random() - 0.5);
+
+
+               for (let [dx, dy] of directions) {
+                   let nx = x + dx * 2;
+                   let ny = y + dy * 2;
+                   if (nx > 0 && ny > 0 && nx < cols - 1 && ny < rows - 1 && grid[ny][nx] === 1) {
+                       grid[y + dy][x + dx] = 0;
+                       carve(nx, ny);
+                   }
+               }
+           }
+
+
+           carve(1, 1);
+           return grid;
+       }
+
+
+       const maze = generateMaze();
+       const walls = [];
+       for (let y = 0; y < rows; y++) {
+           for (let x = 0; x < cols; x++) {
+               if (maze[y][x] === 1) {
+                   walls.push(new Wall(x, y));
+               }
+           }
+       }
+
+
+       function findOpenSpace() {
+           let x, y;
+           do {
+               x = Math.floor(Math.random() * cols) * tileSize;
+               y = Math.floor(Math.random() * rows) * tileSize;
+           } while (maze[Math.floor(y / tileSize)][Math.floor(x / tileSize)] !== 0);
+           return { x, y };
+       }
+
+
+       const player1Start = findOpenSpace();
+       const player2Start = findOpenSpace();
+       const goalPosition = findOpenSpace();
+       const goal = new Goal(goalPosition.x, goalPosition.y);
+
+
+       const player1 = new Player(player1Start.x, player1Start.y, "red", { up: "w", down: "s", left: "a", right: "d" });
+       const player2 = new Player(player2Start.x, player2Start.y, "blue", { up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight" });
+
+
+       function handleKeys(event, isDown) {
+           [player1, player2].forEach(player => {
+               if (event.key === player.controls.up) player.keys.up = isDown;
+               if (event.key === player.controls.down) player.keys.down = isDown;
+               if (event.key === player.controls.left) player.keys.left = isDown;
+               if (event.key === player.controls.right) player.keys.right = isDown;
+           });
+       }
+
+
+       window.addEventListener("keydown", (event) => handleKeys(event, true));
+       window.addEventListener("keyup", (event) => handleKeys(event, false));
+
+
+       function spawnPowerUp() {
+           if (!powerUp) {
+               const types = ["speed", "teleport", "freeze"];
+               const type = types[Math.floor(Math.random() * types.length)];
+               const { x, y } = findOpenSpace();
+               powerUp = new PowerUp(x, y, type);
+           }
+       }
+
+
+       function endGame(winner) {
+           gameActive = false;
+           const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+           alert(`${winner.color.toUpperCase()} wins! Time: ${timeTaken} seconds`);
+       }
+
+
+       function gameLoop() {
+           ctx.clearRect(0, 0, canvas.width, canvas.height);
+           walls.forEach(wall => wall.draw());
+           goal.draw();
+           if (powerUp) powerUp.draw();
+           player1.move();
+           player2.move();
+           player1.draw();
+           player2.draw();
+
+
+           if (gameActive) {
+               const timeElapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+               timerElement.textContent = `Time: ${timeElapsed}`;
+               if (powerUp && player1.x < powerUp.x + powerUp.size && player1.x + player1.size > powerUp.x && player1.y < powerUp.y + powerUp.size && player1.y + player1.size > powerUp.y) {
+                   powerUp.activate(player1, player2);
+               }
+               if (powerUp && player2.x < powerUp.x + powerUp.size && player2.x + player2.size > powerUp.x && player2.y < powerUp.y + powerUp.size && player2.y + player2.size > powerUp.y) {
+                   powerUp.activate(player2, player1);
+               }
+               spawnPowerUp();
+               requestAnimationFrame(gameLoop);
+           }
+       }
+
+
+       startTime = Date.now();
+       gameLoop();
+   </script>
+</body>
+</html>
