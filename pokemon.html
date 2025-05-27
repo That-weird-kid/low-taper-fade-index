@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pokémon Clicker</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #e0f7fa;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2.5em;
+    }
+    #pokeball {
+      width: 150px;
+      cursor: pointer;
+    }
+    #points {
+      font-size: 1.5em;
+      margin: 15px 0;
+    }
+    .menu {
+      margin: 20px 0;
+    }
+    .store, .upgrades, .skills {
+      display: none;
+      margin-top: 20px;
+    }
+    .active {
+      display: block;
+    }
+    .section {
+      margin: 10px auto;
+      padding: 10px;
+      border: 2px solid #aaa;
+      border-radius: 10px;
+      background-color: #fff;
+      width: 270px;
+    }
+    button {
+      padding: 8px 16px;
+      font-size: 1em;
+      margin-top: 5px;
+      cursor: pointer;
+    }
+    #winMessage {
+      display: none;
+      background-color: #d1ffd6;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Pokémon Clicker</h1>
+  <img id="pokeball" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" alt="Pokeball">
+  <div id="points">PokéPoints: 0</div>
+
+  <div class="menu">
+    <button onclick="toggleSection('store')">Toggle Shop</button>
+    <button onclick="toggleSection('upgrades')">Toggle Poké Ball Upgrades</button>
+    <button onclick="toggleSection('skills')">Toggle Skill Tree</button>
+  </div>
+
+  <div id="store" class="store"></div>
+
+  <div id="upgrades" class="upgrades">
+    <div class="section" id="upgradeSection"></div>
+  </div>
+
+  <div id="skills" class="skills">
+    <div class="section" id="skillTreeSection"></div>
+  </div>
+
+  <div id="winMessage" class="section">
+    <h2>🎉 You Win! 🎉</h2>
+    <p id="timeTaken"></p>
+  </div>
+
+  <script>
+    const gameStartTime = Date.now();
+    let pokepoints = 0;
+    let clickPower = 1;
+    let ballLevel = 1;
+    let skillLevel = 0;
+
+    const pokeball = document.getElementById('pokeball');
+    const pointsDisplay = document.getElementById('points');
+    const store = document.getElementById('store');
+    const upgradeSection = document.getElementById('upgradeSection');
+
+    const ballUpgrades = {
+      2: { name: "Great Ball", cost: 1000, img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png" },
+      3: { name: "Ultra Ball", cost: 50000, img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png" },
+      4: { name: "Master Ball", cost: 100000, img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" }
+    };
+
+    const pokemonPool = [
+      { name: "Pikachu", emoji: "⚡", pps: 1, cost: 10, unlockAt: 1 },
+      { name: "Charmander", emoji: "🔥", pps: 3, cost: 50, unlockAt: 1 },
+      { name: "Bulbasaur", emoji: "🌿", pps: 7, cost: 500, unlockAt: 2 },
+      { name: "Squirtle", emoji: "💧", pps: 15, cost: 5000, unlockAt: 3 },
+      { name: "Mew", emoji: "✨", pps: 100, cost: 50000, unlockAt: 4 }
+    ];
+
+    const pokemonOwned = {};
+
+    pokeball.addEventListener('click', () => {
+      pokepoints += clickPower;
+      updateDisplay();
+    });
+
+    function toggleSection(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('active');
+    }
+
+    function buyPokemon(name) {
+      const pokemon = pokemonPool.find(p => p.name === name);
+      if (pokepoints >= pokemon.cost) {
+        pokepoints -= pokemon.cost;
+        pokemonOwned[name] = (pokemonOwned[name] || 0) + 1;
+        pokemon.cost = Math.floor(pokemon.cost * 1.25);
+        updateDisplay();
+        renderStore();
+        if (name === "Mew") {
+          showWinMessage();
+        }
+      }
+    }
+
+    function showWinMessage() {
+      const timeTaken = Math.floor((Date.now() - gameStartTime) / 1000);
+      const minutes = Math.floor(timeTaken / 60);
+      const seconds = timeTaken % 60;
+      const timeDisplay = minutes > 0
+        ? `${minutes} minute(s) and ${seconds} second(s)`
+        : `${seconds} second(s)`;
+
+      document.getElementById('winMessage').style.display = 'block';
+      document.getElementById('timeTaken').textContent = `You reached Mew in ${timeDisplay}!`;
+    }
+
+    function upgradeBall() {
+      const nextLevel = ballLevel + 1;
+      const upgrade = ballUpgrades[nextLevel];
+      if (upgrade && pokepoints >= upgrade.cost) {
+        pokepoints -= upgrade.cost;
+        ballLevel = nextLevel;
+        clickPower += 1;
+        pokeball.src = upgrade.img;
+        updateDisplay();
+        updateUpgradeUI();
+        renderStore();
+      }
+    }
+
+    function updateUpgradeUI() {
+      const nextLevel = ballLevel + 1;
+      const upgrade = ballUpgrades[nextLevel];
+      if (upgrade) {
+        upgradeSection.innerHTML = `
+          <h3>Upgrade to ${upgrade.name}</h3>
+          <p>+1 per click</p>
+          <button onclick="upgradeBall()">Upgrade for ${upgrade.cost} PokéPoints</button>
+        `;
+      } else {
+        upgradeSection.innerHTML = `<h3>All Poké Ball upgrades unlocked!</h3>`;
+      }
+    }
+
+    function renderStore() {
+      store.innerHTML = '';
+      pokemonPool.forEach(p => {
+        if (ballLevel >= p.unlockAt) {
+          store.innerHTML += `
+            <div class="section">
+              <h3>${p.name} ${p.emoji}</h3>
+              <p>+${p.pps} PPS</p>
+              <p>Owned: ${pokemonOwned[p.name] || 0}</p>
+              <button onclick="buyPokemon('${p.name}')">Buy for ${p.cost}</button>
+            </div>
+          `;
+        }
+      });
+    }
+
+    function skillCost(level) {
+      if (level < 5) return [0, 100, 500, 2000, 10000, 50000][level];
+      return 50000 * Math.pow(2, level - 5);
+    }
+
+    function skillBonus(level) {
+      return level < 5 ? 1 : 2;
+    }
+
+    function upgradeSkill() {
+      const cost = skillCost(skillLevel + 1);
+      if (pokepoints >= cost) {
+        pokepoints -= cost;
+        skillLevel += 1;
+        clickPower += skillBonus(skillLevel);
+        updateDisplay();
+        renderSkillTree();
+      }
+    }
+
+    function renderSkillTree() {
+      const nextCost = skillCost(skillLevel + 1);
+      const bonus = skillBonus(skillLevel + 1);
+      const section = document.getElementById('skillTreeSection');
+      section.innerHTML = `
+        <h3>Click Boost Skill Tree</h3>
+        <p>Skill Level: ${skillLevel}</p>
+        <p>Next Bonus: +${bonus} per click</p>
+        <button onclick="upgradeSkill()">Upgrade for ${nextCost} PokéPoints</button>
+      `;
+    }
+
+    function updateDisplay() {
+      pointsDisplay.textContent = `PokéPoints: ${Math.floor(pokepoints)}`;
+    }
+
+    // Passive income every second
+    setInterval(() => {
+      let totalPPS = 0;
+      for (let name in pokemonOwned) {
+        const p = pokemonPool.find(p => p.name === name);
+        totalPPS += pokemonOwned[name] * p.pps;
+      }
+      pokepoints += totalPPS;
+      updateDisplay();
+    }, 1000);
+
+    // Initial render
+    updateDisplay();
+    updateUpgradeUI();
+    renderStore();
+    renderSkillTree();
+  </script>
+
+</body>
+</html>
