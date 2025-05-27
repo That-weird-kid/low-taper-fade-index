@@ -1,1 +1,158 @@
-Mew
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Jeu de Maths avec Score</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      text-align: center;
+      padding: 30px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+    }
+    #leaderboard {
+      margin-top: 20px;
+    }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Jeu de Maths â ±ï¸ </h1>
+  <p id="timer">Temps restant : 30s</p>
+  <p id="question">Chargement...</p>
+  <input type="number" id="reponse" placeholder="Votre rÃ©ponse">
+  <br>
+  <button onclick="verifier()">VÃ©rifier</button>
+  <p id="resultat"></p>
+  <h2>Score : <span id="score">0</span></h2>
+
+  <div id="leaderboard">
+    <h2>ðŸ † Classement</h2>
+    <table>
+      <thead>
+        <tr><th>Nom</th><th>Score</th></tr>
+      </thead>
+      <tbody id="classement"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let nombre1, nombre2, solution;
+    let score = 0;
+    let tempsRestant = 30;
+    let timerInterval;
+
+    function nouvelleQuestion() {
+      nombre1 = Math.floor(Math.random() * 10) + 1;
+      nombre2 = Math.floor(Math.random() * 10) + 1;
+      solution = nombre1 + nombre2;
+      document.getElementById("question").textContent = `Combien font ${nombre1} + ${nombre2} ?`;
+      document.getElementById("reponse").value = "";
+      document.getElementById("resultat").textContent = "";
+      document.getElementById("reponse").focus();
+    }
+
+    function verifier() {
+      const reponseUtilisateur = parseInt(document.getElementById("reponse").value);
+      if (reponseUtilisateur === solution) {
+        score++;
+        document.getElementById("score").textContent = score;
+        document.getElementById("resultat").textContent = "âœ… Bonne rÃ©ponse !";
+        document.getElementById("resultat").style.color = "green";
+      } else {
+        document.getElementById("resultat").textContent = `â Œ Mauvaise rÃ©ponse.`;
+        document.getElementById("resultat").style.color = "red";
+      }
+      nouvelleQuestion();
+    }
+
+    function lancerTimer() {
+      timerInterval = setInterval(() => {
+        tempsRestant--;
+        document.getElementById("timer").textContent = `Temps restant : ${tempsRestant}s`;
+
+        if (tempsRestant <= 0) {
+          clearInterval(timerInterval);
+          finDuJeu();
+        }
+      }, 1000);
+    }
+
+    function finDuJeu() {
+      document.getElementById("question").textContent = "â ° Temps Ã©coulÃ© !";
+      document.getElementById("resultat").textContent = "";
+      document.getElementById("reponse").disabled = true;
+
+      const nom = prompt("Entrez votre nom pour le classement :");
+      if (nom) {
+        enregistrerScore(nom, score);
+        afficherClassement();
+      }
+    }
+
+    function enregistrerScore(nom, nouveauScore) {
+      const scores = JSON.parse(localStorage.getItem("classement")) || [];
+      const index = scores.findIndex(entry => entry.nom === nom);
+
+      if (index !== -1) {
+        if (nouveauScore > scores[index].score) {
+          scores[index].score = nouveauScore;
+        }
+      } else {
+        scores.push({ nom, score: nouveauScore });
+      }
+
+      scores.sort((a, b) => b.score - a.score);
+      scores.splice(5);
+      localStorage.setItem("classement", JSON.stringify(scores));
+    }
+
+    function afficherClassement() {
+      const scores = JSON.parse(localStorage.getItem("classement")) || [];
+      const tbody = document.getElementById("classement");
+      tbody.innerHTML = "";
+      for (const entry of scores) {
+        const row = `<tr><td>${entry.nom}</td><td>${entry.score}</td></tr>`;
+        tbody.innerHTML += row;
+      }
+    }
+
+    // EntrÃ©e = VÃ©rifier
+    document.getElementById("reponse").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        verifier();
+      }
+    });
+
+    // RÃ©initialisation du classement avec la touche "R"
+    document.addEventListener("keydown", (event) => {
+      if (event.key.toLowerCase() === "r") {
+        if (confirm("Voulez-vous vraiment rÃ©initialiser le classement ?")) {
+          localStorage.removeItem("classement");
+          afficherClassement();
+          alert("Classement rÃ©initialisÃ©.");
+        }
+      }
+    });
+
+    // Initialisation
+    nouvelleQuestion();
+    lancerTimer();
+    afficherClassement();
+  </script>
+
+</body>
+</html>
