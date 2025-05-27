@@ -30,17 +30,17 @@
 </head>
 <body>
 
-  <h1>Jeu de Maths â ±ï¸ </h1>
+  <h1>Jeu de Maths ⏱️</h1>
   <p id="timer">Temps restant : 30s</p>
   <p id="question">Chargement...</p>
-  <input type="number" id="reponse" placeholder="Votre rÃ©ponse">
+  <input type="number" id="reponse" placeholder="Votre réponse">
   <br>
-  <button onclick="verifier()">VÃ©rifier</button>
+  <button onclick="verifier()">Vérifier</button>
   <p id="resultat"></p>
   <h2>Score : <span id="score">0</span></h2>
 
   <div id="leaderboard">
-    <h2>ðŸ † Classement</h2>
+    <h2>🏆 Classement</h2>
     <table>
       <thead>
         <tr><th>Nom</th><th>Score</th></tr>
@@ -70,10 +70,10 @@
       if (reponseUtilisateur === solution) {
         score++;
         document.getElementById("score").textContent = score;
-        document.getElementById("resultat").textContent = "âœ… Bonne rÃ©ponse !";
+        document.getElementById("resultat").textContent = "✅ Bonne réponse !";
         document.getElementById("resultat").style.color = "green";
       } else {
-        document.getElementById("resultat").textContent = `â Œ Mauvaise rÃ©ponse.`;
+        document.getElementById("resultat").textContent = `❌ Mauvaise réponse.`;
         document.getElementById("resultat").style.color = "red";
       }
       nouvelleQuestion();
@@ -92,7 +92,7 @@
     }
 
     function finDuJeu() {
-      document.getElementById("question").textContent = "â ° Temps Ã©coulÃ© !";
+      document.getElementById("question").textContent = "⏰ Temps écoulé !";
       document.getElementById("resultat").textContent = "";
       document.getElementById("reponse").disabled = true;
 
@@ -130,20 +130,20 @@
       }
     }
 
-    // EntrÃ©e = VÃ©rifier
+    // Entrée = Vérifier
     document.getElementById("reponse").addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         verifier();
       }
     });
 
-    // RÃ©initialisation du classement avec la touche "R"
+    // Réinitialisation du classement avec la touche "R"
     document.addEventListener("keydown", (event) => {
       if (event.key.toLowerCase() === "r") {
-        if (confirm("Voulez-vous vraiment rÃ©initialiser le classement ?")) {
+        if (confirm("Voulez-vous vraiment réinitialiser le classement ?")) {
           localStorage.removeItem("classement");
           afficherClassement();
-          alert("Classement rÃ©initialisÃ©.");
+          alert("Classement réinitialisé.");
         }
       }
     });
