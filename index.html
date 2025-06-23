@@ -7,10 +7,10 @@
 
 <link rel="icon" href="axotl.ico">
    <title>Un onglet normal</title>
-    <link rel="stylesheet" href="styles.css"> 
-<script src="script.js"></script> 
+    <link rel="stylesheet" href="styles.css">  
 </head>
 <body>
+   <script src="script.js"></script>
     <h1 lang=en> The low taper fade index</h1>
     <div id="versatile"> 
 <a href="Mew.html">
@@ -35,7 +35,17 @@
 <a href="">
     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASIAAACuCAMAAAClZfCTAAAAJ1BMVEX///8AAAA9pUKn03mpqalTrUys1nyk0nTM5bTNzc2mpqavr681NTXtofK5AAABNElEQVR4nO3Qxw0CAADEsKPX/edlhLwQPOwJouxI2K8D/p9FyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli9IuhF0JOxEsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIo7UbYnTAAAAAAAAAAAAD4ngdhT8LOBIuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEp7EfYm7ECwKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKH0AIrC+ZC7yASEAAAAASUVORK5CYII=" id="easteregg" >
 </a>
-</div>
-   <h2>🏳️‍🌈 Happy Pride Month! 🏳️‍🌈</h2>
+       
+   <h2 id="pride">🏳️‍🌈 Happy Pride Month! 🏳️‍🌈</h2>
+       <div id="watchMe">Hello!</div>
+
+<script>
+  const target = document.getElementById('pride');
+  const observer = new MutationObserver(() => {
+    alert("Don't try to change this!");
+    target.innerText = "Nice try.";
+  });
+  observer.observe(target, { childList: true, characterData: true, subtree: true });
+</script>
 </body>
 </html>
