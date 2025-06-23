@@ -1,3 +1,6 @@
-function changeText() {
-    document.querySelector("h1").innerText = "You clicked the button!";
-}
+  const target = document.getElementById('pride');
+  const observer = new MutationObserver(() => {
+    alert("I know you might not like pride month but I do, and you can be patient until end of June (if I decide to change it at the end of June)");
+    target.textContent = '🏳️‍🌈 Happy Pride Month! 🏳️‍🌈'
+  });
+  observer.observe(target, { childList: true, characterData: true, subtree: true });
