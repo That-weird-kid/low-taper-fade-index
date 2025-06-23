@@ -30,20 +30,15 @@
    </a>
 <a href="pokemon.html">
     <img id="space-invader" src="k.png"   class=photo alt= "click en-dessous pour enregistrer un jeu de Daniel">
-</a>
-
-<a href="">
-    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASIAAACuCAMAAAClZfCTAAAAJ1BMVEX///8AAAA9pUKn03mpqalTrUys1nyk0nTM5bTNzc2mpqavr681NTXtofK5AAABNElEQVR4nO3Qxw0CAADEsKPX/edlhLwQPOwJouxI2K8D/p9FyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli9IuhF0JOxEsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIoWZQsShYli5JFyaJkUbIo7UbYnTAAAAAAAAAAAAD4ngdhT8LOBIuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEp7EfYm7ECwKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKFmULEoWJYuSRcmiZFGyKH0AIrC+ZC7yASEAAAAASUVORK5CYII=" id="easteregg" >
-</a>
-       
+</a>   
    <h2 id="pride">🏳️‍🌈 Happy Pride Month! 🏳️‍🌈</h2>
        
 
 <script>
   const target = document.getElementById('pride');
   const observer = new MutationObserver(() => {
-    alert("Don't try to change this!");
-    target.innerText = "Nice try.";
+    alert("I know you might not like pride month but I do and be patient until end of June (if I decide to change it at the end of June)");
+    target.textContent = '🏳️‍🌈 Happy Pride Month! 🏳️‍🌈'
   });
   observer.observe(target, { childList: true, characterData: true, subtree: true });
 </script>
