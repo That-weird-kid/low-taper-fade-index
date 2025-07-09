@@ -1,7 +1,12 @@
 function FindProxyForURL(url, host) {
-    if (dnsDomainIs(host, ".example.com")) {
-        return "DIRECT";
-    }
-    return "PROXY 192.168.1.123:8080; DIRECT";
-}
+  // Route these domains directly (no proxy)
+  if (
+    dnsDomainIs(host, "google.com") ||
+    dnsDomainIs(host, "chatgpt.com")
+  ) {
+    return "DIRECT";
+  }
 
+  // Everything else goes through your mitmproxy
+  return "PROXY 192.168.4.216:8080";
+}
