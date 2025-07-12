@@ -7,5 +7,5 @@ function FindProxyForURL(url, host) {
     return "DIRECT";
   }
 
-  return "PROXY 192.168.3.216:8080; DIRECT";
+  return "PROXY 192.168.4.216:8080; DIRECT";
 }
