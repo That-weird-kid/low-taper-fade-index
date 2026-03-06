@@ -1,11 +1,9 @@
 function FindProxyForURL(url, host) {
-  if (
-    dnsDomainIs(host, "www.google.com") ||
-    dnsDomainIs(host, "www.youtube.com") ||
-    dnsDomainIs(host, "chatgpt.com")
-  ) {
-    return "DIRECT";
-  }
+    if (dnsDomainIs(host, "classicgamezone.com") || 
+        shExpMatch(host, "(*.classicgamezone.com|classicgamezone.com)")) {
+        return "PROXY 127.0.0.1:80"; // Non-existent proxy
+    }
 
-  return "PROXY 192.168.4.216:8080; DIRECT";
+    // All other traffic goes directly
+    return "DIRECT";
 }
