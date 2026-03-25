@@ -1,7 +1,7 @@
 function FindProxyForURL(url, host) {
     // Check if the host matches the specific domain or its subdomains
-    if (dnsDomainIs(host, "classicgamezone.com") || 
-        shExpMatch(host, "*.classicgamezone.com")) {
+    if (dnsDomainIs(host, "classicgamezone.net") || 
+        shExpMatch(host, "*.classicgamezone.net")) {
         
         // Redirects to a local proxy (ensure one is running or this will fail)
         return "PROXY 127.0.0.1:80"; 
